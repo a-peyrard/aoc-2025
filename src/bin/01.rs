@@ -1,15 +1,7 @@
 advent_of_code::solution!(1);
 
 pub fn part_one(input: &str) -> Option<u64> {
-    let amounts: Vec<i32> = input
-        .lines()
-        .map(|line| {
-            let direction = line.chars().next().unwrap();
-            let amount: i32 = line[1..].parse().unwrap();
-
-            if direction == 'L' { -amount } else { amount }
-        })
-        .collect();
+    let amounts = extract_amounts(input);
 
     let mut current = 50;
     let mut zeros = 0;
@@ -28,8 +20,40 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(zeros)
 }
 
-pub fn part_two(_input: &str) -> Option<u64> {
-    None
+pub fn part_two(input: &str) -> Option<u64> {
+    let amounts = extract_amounts(input);
+
+    let mut current = 50;
+    let mut zeros = 0;
+    for mut amount in amounts {
+        zeros += (amount / 100).abs();
+        amount %= 100;
+
+        let prev = current;
+        current += amount;
+        if (prev != 0 && current <= 0) || current >= 100 {
+            zeros += 1;
+        }
+        if current < 0 {
+            current += 100;
+        }
+
+        current %= 100;
+    }
+
+    Some(zeros.try_into().unwrap())
+}
+
+fn extract_amounts(input: &str) -> Vec<i32> {
+    input
+        .lines()
+        .map(|line| {
+            let direction = line.chars().next().unwrap();
+            let amount: i32 = line[1..].parse().unwrap();
+
+            if direction == 'L' { -amount } else { amount }
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -67,8 +91,14 @@ R100"#,
     }
 
     #[test]
-    fn test_part_two() {
+    fn test_part_two_example_1() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(6));
+    }
+
+    #[test]
+    fn test_part_two_solution() {
+        let result = part_two(&advent_of_code::template::read_file("inputs", DAY));
+        assert_eq!(result, Some(6634));
     }
 }
