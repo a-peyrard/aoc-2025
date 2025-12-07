@@ -17,14 +17,16 @@ pub fn part_two(input: &str) -> Option<u64> {
     let mut grid = Grid::parse_input(input);
 
     let mut removed_total = 0;
-    let mut removed_this_round = 1;
-    while removed_this_round > 0 {
+    loop {
         let coords_to_remove: Vec<(usize, usize)> = grid
             .find(b'@')
             .filter(|&(x, y)| grid.adjacent_element(x, y, b'@').count() < 4)
             .collect();
 
-        removed_this_round = coords_to_remove.len();
+        let removed_this_round = coords_to_remove.len();
+        if removed_this_round == 0 {
+            break;
+        }
 
         for coord in coords_to_remove {
             grid.set(coord, b'.');
