@@ -56,8 +56,52 @@ fn parse_input(input: &str) -> (Vec<Vec<u64>>, Vec<char>) {
     )
 }
 
-pub fn part_two(_input: &str) -> Option<u64> {
-    None
+pub fn part_two(input: &str) -> Option<u64> {
+    let lines: Vec<Vec<char>> = input.lines()
+        .filter(|line| !line.is_empty())
+        .map(|line| line.chars().collect())
+        .collect();
+
+    let (
+        operator_line,
+        number_lines
+    ) = lines.split_last().unwrap();
+
+    let mut index = operator_line.len() - 1;
+
+    let mut result: u64 = 0;
+    let mut numbers: Vec<u64> = Vec::new();
+    loop {
+        let mut cur = String::new();
+        for line in number_lines {
+            cur.push(line[index]);
+        }
+        numbers.push(cur.trim().parse::<u64>().unwrap());
+
+        let operator = operator_line[index];
+
+        if operator != ' ' {
+            result += match operator {
+                '+' => numbers.iter().sum::<u64>(),
+                '*' => numbers.iter().product::<u64>(),
+                _ => panic!("unexpected operator"),
+            };
+            numbers.clear();
+
+            // skip empty column after operation
+            if index > 0 {
+                index -= 1;
+            }
+        }
+
+        if index == 0 {
+            break
+        }
+
+        index -= 1;
+    }
+
+    Some(result)
 }
 
 #[cfg(test)]
@@ -73,6 +117,6 @@ mod tests {
     #[test]
     fn test_part_two_example_1() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(3263827));
     }
 }
