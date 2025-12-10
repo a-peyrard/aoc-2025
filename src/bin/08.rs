@@ -1,4 +1,4 @@
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::{cmp::Reverse, collections::{BinaryHeap, HashMap, HashSet}};
 
 use advent_of_code::util::union_find::UnionFind;
 
@@ -78,7 +78,42 @@ pub fn part_one_with_sample(input: &str, samples: usize) -> Option<u64> {
     )
 }
 
-pub fn part_two(_input: &str) -> Option<u64> {
+pub fn part_two(input: &str) -> Option<u64> {
+    let boxes: Vec<Box> = input
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(Box::parse)
+        .collect();
+
+    let mut heap: BinaryHeap<Reverse<(u64, Box, Box)>> = BinaryHeap::new();
+
+    for i in 0..boxes.len() {
+        for j in i + 1..boxes.len() {
+            let box1 = &boxes[i];
+            let box2 = &boxes[j];
+            let distance = box1.distance(box2);
+            heap.push(Reverse((distance, box1.clone(), box2.clone())));
+        }
+    }
+
+    let mut union_find = UnionFind::new(boxes.len());
+    let mut box_mapping: HashMap<Box, usize> = HashMap::new();
+    while let Some(Reverse((_, box1, box2))) = heap.pop() {
+        let x1 = box1.0;
+        let x2 = box2.0;
+
+        let len = box_mapping.len();
+        let box1_idx = *box_mapping.entry(box1).or_insert(len);
+        let len = box_mapping.len();
+        let box2_idx = *box_mapping.entry(box2).or_insert(len);
+
+        union_find.union(box1_idx, box2_idx);
+
+        if union_find.num_components() == 1 {
+            return Some(x1 * x2);
+        }
+    }
+
     None
 }
 
@@ -96,6 +131,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(25272));
     }
 }

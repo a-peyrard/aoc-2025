@@ -1,6 +1,7 @@
 pub struct UnionFind {
     parent: Vec<usize>,
     size: Vec<usize>,
+    num_components: usize,
 }
 
 impl UnionFind {
@@ -8,6 +9,7 @@ impl UnionFind {
         UnionFind {
             parent: (0..n).collect(),
             size: vec![1; n],
+            num_components: n,
         }
     }
 
@@ -24,12 +26,17 @@ impl UnionFind {
         if root_x != root_y {
             self.parent[root_y] = root_x;
             self.size[root_x] += self.size[root_y];
+            self.num_components -= 1;
         }
     }
 
     pub fn component_size(&mut self, x: usize) -> usize {
         let root = self.find(x);
         self.size[root]
+    }
+
+    pub fn num_components(&self) -> usize {
+        self.num_components
     }
 }
 
@@ -112,5 +119,39 @@ mod tests {
         assert_eq!(uf.find(0), uf.find(3));
         assert_eq!(uf.component_size(0), 4);
         assert_ne!(uf.find(0), uf.find(4));
+    }
+
+    #[test]
+    fn test_should_track_number_of_components() {
+        // GIVEN
+        let mut uf = UnionFind::new(6);
+
+        // THEN
+        assert_eq!(uf.num_components(), 6);
+
+        // WHEN
+        uf.union(0, 1);
+
+        // THEN
+        assert_eq!(uf.num_components(), 5);
+
+        // WHEN
+        uf.union(2, 3);
+        uf.union(4, 5);
+
+        // THEN
+        assert_eq!(uf.num_components(), 3);
+
+        // WHEN
+        uf.union(0, 2);
+
+        // THEN
+        assert_eq!(uf.num_components(), 2);
+
+        // WHEN
+        uf.union(1, 5);
+
+        // THEN
+        assert_eq!(uf.num_components(), 1);
     }
 }
